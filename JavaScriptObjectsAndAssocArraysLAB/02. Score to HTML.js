@@ -6,7 +6,7 @@ function scoreToHTMLTable(scoreJSON) {
     html += '   <tr><th>name</th><th>score</th></tr>\n';
 
     for (let obj of arr) {
-        html+= '   <tr>';
+        html += '   <tr>';
         html += `<td>${escapeHTML(obj.name)}</td><td>${Number(obj.score)}</td>`;
         html += '</tr>\n';
     }

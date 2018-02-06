@@ -18,9 +18,9 @@ function fromJSONToHTMLTable(str) {
 
         for (let key of keys) {
 
-            if (Number(obj[key])){
+            if (Number(obj[key])) {
                 html += `<td>${Number(obj[key])}</td>`;
-            }else {
+            } else {
                 html += `<td>${escapeHTML(obj[key])}</td>`;
             }
         }

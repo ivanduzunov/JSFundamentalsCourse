@@ -5,7 +5,7 @@ function parseTownsToJSON(towns) {
 
         let [empty, townName, lat, lng] = town.split(/\s*\|\s*/)
 
-        let townObj = { Town: townName, Latitude: Number(lat), Longitude: Number(lng) };
+        let townObj = {Town: townName, Latitude: Number(lat), Longitude: Number(lng)};
 
         townsArr.push(townObj);
     }
