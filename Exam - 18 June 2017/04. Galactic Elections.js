@@ -1,49 +1,87 @@
-function ElectionsResults(input) {
+function ElectionResults(input) {
 
-    let voteResults = new Map()
-    let systemWinners = new Map()
-    let winnersTotalVotes = new Map()
-    let totalVotes = 0
+    //Storing the election results
+
+    let systemsResultsPerCandidate = new Map()
 
     for (let ballot of input) {
-
-        let starSystem = ballot.system
+        let system = ballot.system
         let candidate = ballot.candidate
         let votes = Number(ballot.votes)
 
-        if (!voteResults.has(starSystem)) {
-            voteResults.set(starSystem, new Map())
+        if (!systemsResultsPerCandidate.has(system)) {
+            systemsResultsPerCandidate.set(system, new Map())
+        }
+        if (!systemsResultsPerCandidate.get(system).has(candidate)) {
+            systemsResultsPerCandidate.get(system).set(candidate, 0)
         }
 
-        if (!voteResults.get(starSystem).has(candidate)) {
-            voteResults.get(starSystem).set(candidate, 0)
+        let currVotes = systemsResultsPerCandidate.get(system).get(candidate)
+        systemsResultsPerCandidate.get(system).set(candidate, currVotes + votes)
+    }
+
+    //Extract and store the final results in each star system
+
+    let systemsFinalResults = new Map()
+    let systemsWonByCandidate = new Map()
+    let totalElectionVotes = 0
+
+    for (let [system, results] of systemsResultsPerCandidate) {
+
+        //Sort the system results
+        let systemCandidatesKeysSorted = [...results.keys()].sort((a, b) => {
+            if (results.get(a) > results.get(b)) return -1;
+            if (results.get(a) < results.get(b)) return 1;
+        });
+        let totalSystemVotes = 0
+
+        for (let [k, v] of results) {
+            totalSystemVotes += v
         }
 
-        let currentVotes = voteResults.get(starSystem).get(candidate)
-        voteResults.get(starSystem).set(candidate, currentVotes + votes)
-        totalVotes += votes
-    }
+        totalElectionVotes += totalSystemVotes
+        let winner = systemCandidatesKeysSorted[0]
 
-    for (const [system, candidates] of voteResults) {
-        voteResults.set(system, new Map([...candidates].sort((c1, c2) => c2[1] - c1[1])))
-    }
-
-    for (const [system, candidates] of voteResults) {
-        let winner = [...candidates.keys()][0]
-        if (!systemWinners.has(winner)) {
-            systemWinners.set(winner, new Map())
+        if (!systemsFinalResults.has(winner)) {
+            systemsFinalResults.set(winner, totalSystemVotes)
+        } else {
+            let currVotes = systemsFinalResults.get(winner)
+            systemsFinalResults.set(winner, totalSystemVotes + currVotes)
         }
 
-        systemWinners.get(winner).set(system, [...candidates.values()].reduce((x, y) => x + y))
+        if (!systemsWonByCandidate.has(winner)) {
+            systemsWonByCandidate.set(winner, new Map())
+        }
+
+        systemsWonByCandidate.get(winner).set(system, totalSystemVotes)
     }
 
-    for (const [winner, systems] of systemWinners) {
-        systemWinners.set(winner, new Map([...systems].sort((x, y) => y[1] - x[1])))
+    let finalResultsKeysSorted = [...systemsFinalResults.keys()].sort((a, b) => {
+        if (systemsFinalResults.get(a) > systemsFinalResults.get(b)) return -1;
+        if (systemsFinalResults.get(a) < systemsFinalResults.get(b)) return 1;
+    });
+
+    if (systemsFinalResults.get(finalResultsKeysSorted[0]) === totalElectionVotes) {
+        console.log(`${finalResultsKeysSorted[0]} wins with ${totalElectionVotes} votes`)
+        console.log(`${finalResultsKeysSorted[0]} wins unopposed!`)
+    } else if (systemsFinalResults.get(finalResultsKeysSorted[0]) > totalElectionVotes / 2) {
+        console.log(`${finalResultsKeysSorted[0]} wins with ${systemsFinalResults.get(finalResultsKeysSorted[0])} votes`)
+        console.log(`Runner up: ${finalResultsKeysSorted[1]}`)
+
+        let runnerUpSystemsKeysSorted = [...systemsWonByCandidate.get(finalResultsKeysSorted[1]).keys()].sort((a, b) => {
+            if (systemsWonByCandidate.get(finalResultsKeysSorted[1]).get(a) > systemsWonByCandidate.get(finalResultsKeysSorted[1]).get(b)) return -1;
+            if (systemsWonByCandidate.get(finalResultsKeysSorted[1]).get(a) < systemsWonByCandidate.get(finalResultsKeysSorted[1]).get(b)) return 1;
+        });
+
+        for (let key of runnerUpSystemsKeysSorted) {
+            console.log(`${key}: ${systemsWonByCandidate.get(finalResultsKeysSorted[1]).get(key)}`)
+        }
+    } else {
+        let firstName = finalResultsKeysSorted[0]
+        let firstpercent = Math.floor((systemsFinalResults.get(finalResultsKeysSorted[0]) / totalElectionVotes) * 100)
+        let secondName = finalResultsKeysSorted[1]
+        let secondpercent = Math.floor((systemsFinalResults.get(finalResultsKeysSorted[1]) / totalElectionVotes) * 100)
+
+        console.log(`Runoff between ${firstName} with ${firstpercent}% and ${secondName} with ${secondpercent}%`)
     }
-
-    for (const [winner, systems] of systemWinners) {
-        winnersTotalVotes.set(winner, [...systems.values()].reduce((x, y) => x + y))
-    }
-
-
 }
